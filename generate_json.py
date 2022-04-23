@@ -3,13 +3,14 @@
  author： Hao Hu
  @date   2022/4/20 4:48 PM
 """
+
 import os, sys, shutil, json
 import os.path as osp
 import pandas as pd
 import logging
 from csv import DictReader
 import numpy as np
-
+# 初级版本，生成一定格式的json文件，然后自己把数据填上去
 
 def generate_json(json_path):
     sample_dict = {}
