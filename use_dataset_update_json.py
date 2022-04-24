@@ -41,7 +41,7 @@ def read_txt(txt_path):
                 answer[key].append(answer_tmp)
                 answer_tmp_num +=1
 
-                if 'SELLER' in content:
+                if 'SELLER' or 'MANUFACTURER' in content:
                     seller_list.append(answer_tmp[0])
                 answer_tmp = []
             else:
