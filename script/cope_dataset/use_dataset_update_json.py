@@ -40,10 +40,13 @@ def read_txt(txt_path):
             if "By" in content:
                 answer[key].append(answer_tmp)
                 answer_tmp_num +=1
-
-                if 'SELLER' or 'MANUFACTURER' in content:
-                    seller_list.append(answer_tmp[0])
-                answer_tmp = []
+                try:
+                    if 'SELLER' or 'MANUFACTURER' in content:
+                        seller_list.append(answer_tmp[0])
+                    answer_tmp = []
+                except IndexError:
+                    answer_tmp = []
+                    pass
             else:
                 if 'Answer:' in content:
                     answer_tmp.append(content[7:])
@@ -63,7 +66,7 @@ def generate_sample(ids,answer,five_point_item,seller_list):
     sample_dict = {}
     sample_dict['asin'] = ids
     sample_dict['highlights'] = five_point_item
-    sample_dict['QAS'] = []
+    sample_dict['QAs'] = []
     aftersale_list = ['Dear','Best wishes','Sincerely','Wishes']#买家里面发现了'contact''Support'
     for key,contents in answer.items():
         QA_sample = {}  # 一个问题一个sample
@@ -83,7 +86,7 @@ def generate_sample(ids,answer,five_point_item,seller_list):
                     tmp["is_seller"] = '1'
 
             QA_sample["answers"].append(tmp)
-        sample_dict['QAS'].append(QA_sample)
+        sample_dict['QAs'].append(QA_sample)
 
     return sample_dict
 
@@ -95,7 +98,11 @@ def generate_json(folder_path,json_path):
     all_sample_dict["samples"] = []
     question_num = 0
     answer_num = 0
+    index = 0
     for file in files:
+        index+=1
+        if index>31:
+            break
         file_path = osp.join(folder_path, file)
         ids, answer, five_point_item,answer_tmp_num,seller_list = read_txt(file_path)
         question_num +=len(answer)
@@ -111,8 +118,8 @@ def generate_json(folder_path,json_path):
 
 
 if __name__ == '__main__':
-    folder_path = '/Users/huhao/Documents/GitHub/base_catree_Text_Categorization/database'
-    json_path = '/Users/huhao/Documents/GitHub/base_catree_Text_Categorization/cattree.json'
+    folder_path = '/database'
+    json_path = '/Users/huhao/Documents/GitHub/base_catree_Text_Categorization/new_cattree.json'
     generate_json(folder_path, json_path)
 
 
