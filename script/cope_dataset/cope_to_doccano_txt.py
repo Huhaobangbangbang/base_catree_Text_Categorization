@@ -36,7 +36,7 @@ def read_json(json_path,out_json_path):
         # tmp['QA_txt'] = sample
         end_content.append("{}\n".format(sample))
 
-    with open('../../test.txt', 'w') as fp:
+    with open('test.txt', 'w') as fp:
         fp.writelines(end_content)
     # out_file = open(out_json_path, "w")
     # json.dump(tmp_all, out_file, indent=6)
