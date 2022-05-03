@@ -13,7 +13,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from function import get_all_url,all_review_page,get_review_function
 from tqdm import tqdm
-from function import get_new_link #这个函数是点击Next page得到下一个页面
+from function import get_new_link,save_data #这个函数是点击Next page得到下一个页面,save_data函数是将已有信息保存到json
 hea = {
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
     'accept-encoding': 'gzip, deflate, br',
@@ -141,20 +141,17 @@ def get_items(req):
 
 
 
-def get_review(driver,url_path,review_num):
+def get_review(url_path,review_num):
     """得到商品评价"""
     product_review = []
     tmp_link = all_review_page((url_path))
-    index = 0
     while(len(product_review)<int(review_num)):
         try:
             review_tmp = get_review_function(tmp_link)
             product_review += review_tmp
             tmp_link = get_new_link(tmp_link)
             print(len(product_review))
-            index+=1
-            if index>5:
-                break
+
         except:
             product_review = list(set(product_review))
     product_review = list(set(product_review))
@@ -186,10 +183,11 @@ if __name__ == '__main__':
     change_address(postal)  # 更改邮寄地址
     wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.s-result-list")))
     for url in tqdm(url_list):
+        url = 'https://www.amazon.com/dp/B09FZ9ZV55'
         req, error = gethtml(url, hea)  # 默认header
         product_star,review_num,five_point_review = get_items(req)
-
-        product_review = get_review(driver,url,review_num)
+        product_review = get_review(url,review_num)
+        save_data(product_star, review_num, five_point_review, product_review, url)
         break
 
     driver.quit()  # 关闭浏览器

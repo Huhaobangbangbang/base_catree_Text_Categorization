@@ -3,19 +3,16 @@
  author： Hao Hu
  @date   2022/4/28 9:54 PM
 """
-import os
 from selenium import webdriver
 from time import sleep
 import time
 from lxml import etree
-import pandas as pd
-from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.support.ui import WebDriverWait
 import requests
-
+import os, sys, shutil, json
 
 hea = {
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
@@ -94,7 +91,7 @@ def get_review_function(url_link):
         html = etree.HTML(req)
     else:
         html = etree.HTML(req.text)
-    print(html)
+
     product_review = html.xpath('//span[@data-hook="review-body"]/span/text()')
 
 
@@ -110,15 +107,29 @@ def get_new_link(old_url):
     next_button = browser.find_element(By.XPATH, '//li[@class="a-last"]/a')
     next_button.click()
     new_url = browser.current_url
-    print(new_url)
+
     return new_url
+
+
+def save_data(product_star,review_num,five_point_review,product_review,url):
+    """通过传过来的数据保存到json文件下"""
+
+    ids = url[-10:]
+    sample_dict = {}
+    sample_dict['asin'] = ids
+    sample_dict['stars'] = product_star
+    sample_dict['review_num'] = review_num
+    sample_dict['highlights'] = five_point_review
+    sample_dict['reviews'] = product_review
+    json_path = os.path.join('/Users/huhao/Documents/GitHub/base_catree_Text_Categorization/review_database/',ids+'.json')
+    out_file = open(json_path, "w")
+    json.dump(sample_dict, out_file, indent=6)
 
 
 if __name__ == '__main__':
     # product_url_path = 'https://www.amazon.com/rabbitgoo-Multi-Level-Scratching-Furniture-Climbing/dp/B0876ZGYP4/ref=sr_1_1_sspa?crid=2SV9YXLL6981T&keywords=cat%2Btree&qid=1651155266&sprefix=cat%2Btree%2Caps%2C803&sr=8-1-spons&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUE5WEpYSzBPWjlPSjMmZW5jcnlwdGVkSWQ9QTAwNjc1NDEyT0NEWVE2UjdIQjVTJmVuY3J5cHRlZEFkSWQ9QTA4NTc1MzMxVkVXVU5QS1ozUUNPJndpZGdldE5hbWU9c3BfYXRmJmFjdGlvbj1jbGlja1JlZGlyZWN0JmRvTm90TG9nQ2xpY2s9dHJ1ZQ&th=1'
     # url_path = 'https://www.amazon.com/'
     url_path = 'https://www.amazon.com/dp/B0921T6QFC'
-    #all_review_page(url_path)
-    get_new_link('https://www.amazon.com/Go-Pet-Club-Condo-67-Inch/product-reviews/B00BFFHPZM/ref=cm_cr_arp_mb_paging_btm_2?ie=UTF8&reviewerType=all_reviews&pageNumber=2')
+
 
 
