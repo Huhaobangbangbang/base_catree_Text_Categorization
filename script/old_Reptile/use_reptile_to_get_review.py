@@ -149,12 +149,13 @@ def get_review(url_path,review_num):
         try:
             review_tmp = get_review_function(tmp_link)
             product_review += review_tmp
-            tmp_link = get_new_link(tmp_link)
+            tmp_link = get_new_link(tmp_link) # 翻到下一页
             print(len(product_review))
-
         except:
-            product_review = list(set(product_review))
-    product_review = list(set(product_review))
+            print('采集数据完成',len(product_review))
+            break
+
+    # product_review = list(set(product_review))
     print('此商品采集的评论个数为：',len(product_review))
     return product_review
 
