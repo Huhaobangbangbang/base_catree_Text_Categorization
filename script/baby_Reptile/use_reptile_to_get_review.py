@@ -174,7 +174,7 @@ if __name__ == '__main__':
     #driver = webdriver.Chrome( executable_path = "chromedriver") #可视化执行任务
     wait = WebDriverWait(driver, 20)
     driver.maximize_window()
-    row = 2
+
     # 修改邮政编码为20237（华盛顿），进而得到美国的正确价格
     search_page_url = 'https://www.amazon.com/s?k=cat+tree'
     postal = "20237"  # 华盛顿

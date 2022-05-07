@@ -122,6 +122,7 @@ def get_review_function(url_link):
     # 这个profile_element是提取的用户账号链接，从而提取到用户的id
     profile_element = html.xpath('//div[@class="a-section review aok-relative"]/div/div/div/a[@class="a-profile"]/@href')
     # stars_buyer_gived是用户给的🌟
+    print(profile_element)
     stars_buyer_gived = html.xpath('//div[@class="a-section review aok-relative"]/div/div//i[@data-hook="review-star-rating"]/span[@class="a-icon-alt"]/text()')
     # 接下来是用户评价的时间
     time_buyer_gived = html.xpath('//div[@class="a-section review aok-relative"]/div/div/span[@data-hook="review-date"]/text()')
