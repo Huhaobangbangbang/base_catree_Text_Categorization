@@ -118,7 +118,6 @@ def get_review(url_path,review_num):
             product_review += review_tmp
             tmp_link = get_new_link(tmp_link) # 翻到下一页
         except selenium.common.exceptions.NoSuchElementException:
-        #except:
             print('采集数据完成',len(product_review))
             break
     return product_review
@@ -137,7 +136,6 @@ if __name__ == '__main__':
 
     already_coped_list = get_already_coped()
     for url in tqdm(url_list):
-        url = ' https://www.amazon.com/dp/B07BS9BVSF'
         try:
             if url[-10:] in already_coped_list:
                 pass
@@ -155,5 +153,6 @@ if __name__ == '__main__':
                 driver.quit()  # 关闭浏览器
         except:
             pass
+
 
 

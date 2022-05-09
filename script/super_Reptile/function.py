@@ -133,23 +133,26 @@ def get_review_function(url_link):
             html_str = str(etree.tostring(sample))
             colour_product = ''
             size_product = ''
-            buyer_id, star_user, time_gived, review_content, review_title = cope_string(html_str)
-            current_str = html_str.split('<span data-hook="review-body"')[0]
-            if 'Vine' in current_str:
-                verified_information = 'Vine Customer Review of Free Product'
-            else:
-                verified_information = 'verified Purchase'
             try:
-                if len(products_information_list)>len(review_element):
-                    size_product = products_information_list[index*2]
-                    colour_product = products_information_list[index*2+1]
+                buyer_id, star_user, time_gived, review_content, review_title = cope_string(html_str)
+                current_str = html_str.split('<span data-hook="review-body"')[0]
+                if 'Vine' in current_str:
+                    verified_information = 'Vine Customer Review of Free Product'
                 else:
-                    colour_product = products_information_list[index]
-            except IndexError:
+                    verified_information = 'verified Purchase'
+                try:
+                    if len(products_information_list)>len(review_element):
+                        size_product = products_information_list[index*2]
+                        colour_product = products_information_list[index*2+1]
+                    else:
+                        colour_product = products_information_list[index]
+                except IndexError:
+                    pass
+                people_found_useful_information = get_found_useful_information_num(html_str)
+                review_sample = generate_sample(buyer_id,star_user,time_gived,size_product,colour_product,verified_information,review_content,review_title,people_found_useful_information)
+                review_sample_list.append(review_sample)
+            except:
                 pass
-            people_found_useful_information = get_found_useful_information_num(html_str)
-            review_sample = generate_sample(buyer_id,star_user,time_gived,size_product,colour_product,verified_information,review_content,review_title,people_found_useful_information)
-            review_sample_list.append(review_sample)
     return review_sample_list
 
 def get_found_useful_information_num(html_str):
@@ -159,6 +162,7 @@ def get_found_useful_information_num(html_str):
         people_found_useful_information =current_str.split(' &#')[0] + ' people found this helpful'
     except:
         people_found_useful_information = '0 people found this helpful'
+
     return people_found_useful_information
 
 
@@ -175,7 +179,9 @@ def cope_string(html_str):
     review_content_str = html_str.split('data-hook="review-body"')[1]
     review_content = review_content_str.split('<span>')[1].split('</span>')[0]
     review_title_str = html_str.split('data-hook="review-title"')[1].split('<span data-hook="review-date"')[0]
+
     review_title = review_title_str.split('<span>')[1].split('</span>')[0]
+
 
     return account,stars_buyer_gived,time_buyer_gived_str,review_content,review_title
 
@@ -184,7 +190,7 @@ def cope_string(html_str):
 if __name__ == '__main__':
     options = initializate_options()
     url_path = 'https://www.amazon.com/dp/B0921T6QFC'
-    url_path = 'https://www.amazon.com/Pawstory-Scratching-Multi-Level-Hammock-Furniture/product-reviews/B09FZ9ZV55/ref=cm_cr_arp_d_paging_btm_next_2?ie=UTF8&reviewerType=all_reviews&pageNumber=2'
+    url_path = 'https://www.amazon.com/Made4Pets-Featuring-Sisal-Covered-Scratching-Spacious/product-reviews/B081SH7JVJ/ref=cm_cr_arp_d_paging_btm_next_8?ie=UTF8&reviewerType=all_reviews&pageNumber=8'
     #url_path = 'https://www.amazon.com/Pawstory-Scratching-Multi-Level-Hammock-Furniture/product-reviews/B09FZ9ZV55/ref=cm_cr_arp_d_paging_btm_next_3?ie=UTF8&reviewerType=all_reviews&pageNumber=3'
     get_review_function(url_path)
 
