@@ -11,15 +11,16 @@ import re
 import time
 from selenium import webdriver
 from selenium.webdriver.support.wait import WebDriverWait
-from function import get_all_url,all_review_page,get_review_function
-from function import get_new_link,save_data #这个函数是点击Next page得到下一个页面,save_data函数是将已有信息保存到json
+from function import get_all_url, all_review_page, get_review_function
+from function import get_new_link, save_data  # 这个函数是点击Next page得到下一个页面,save_data函数是将已有信息保存到json
 from function import gethtml  # 为了得到静态页面HTML，有对页面反应超时的情况做了些延时处理
 from tqdm import tqdm
-from time import sleep
+from time import sleep  # ,zh-CN,zh;q=0.9
+
 hea = {
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
     'accept-encoding': 'gzip, deflate, br',
-    'accept-language': 'zh-CN,zh;q=0.9',
+    'accept-language': 'En-Us',
     'cache-control': 'max-age=0',
     'downlink': '8',
     'ect': '4g',
@@ -28,6 +29,8 @@ hea = {
     'upgrade-insecure-requests': '1',
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'
 }
+
+
 def change_address(postal):
     while True:
         try:
@@ -76,6 +79,8 @@ def initializate_options():
     options.add_experimental_option('excludeSwitches', ['enable-automation'])
 
     return options
+
+
 options = initializate_options()
 
 
@@ -86,6 +91,7 @@ def get_price(html):
         product_price = x_price[0]
     except:
         product_price = '0'
+        print('product_price无法读取')
 
     return product_price
 
@@ -96,63 +102,65 @@ def get_items(req):
         html = etree.HTML(req)
     else:
         html = etree.HTML(req.text)
-    #商品总体评分
+    # 商品总体评分
     product_star = html.xpath('//div[@id="averageCustomerReviews_feature_div"]//span[@id="acrPopover"]/@title')[0]  # 星级
-    print(product_star)
-    product_rate0 = html.xpath('//div[@id="averageCustomerReviews_feature_div"]//span[@id="acrCustomerReviewText"]/text()')[0]  # 评论总数
+    product_rate0 = html.xpath('//span[@id="acrCustomerReviewText"]/text()')[0]  # 评论总数
     review_num = re.sub("\D", "", product_rate0)
     print('参与打分的总人数: ', review_num)
     # 商品的5点
-    five_point_review = html.xpath('//div[@id="featurebullets_feature_div"]//ul//span[@class="a-list-item"]/text()')  # 五点描述
+    five_point_review = html.xpath(
+        '//div[@id="featurebullets_feature_div"]//ul//span[@class="a-list-item"]/text()')  # 五点描述
 
-    return product_star,review_num,five_point_review
+    return product_star, review_num, five_point_review
 
 
-def get_review(url_path,review_num):
+def get_review(url_path, review_num):
     """得到商品评价"""
-    product_review = [] #所有页面的评论信息
+    product_review = []  # 所有页面的评论信息
     tmp_link = all_review_page(url_path)
-    while(len(product_review)<int(review_num)):
+    while (len(product_review) < int(review_num)):
         try:
             review_tmp = get_review_function(tmp_link)
             product_review += review_tmp
-            tmp_link = get_new_link(tmp_link) # 翻到下一页
+            tmp_link = get_new_link(tmp_link)  # 翻到下一页
+            print('已经采集了', len(product_review), '条数据')
+            if tmp_link == '':
+                break
         except selenium.common.exceptions.NoSuchElementException:
-            print('采集数据完成',len(product_review))
+            print('采集数据完成', len(product_review))
             break
     return product_review
 
 
 def get_already_coped():
-    files = os.listdir('/Users/huhao/Documents/GitHub/base_catree_Text_Categorization/review_database')
+    files = os.listdir('/cloud/cloud_disk/users/huh/nlp/base_catree_Text_Categorization/script/super_Reptile/data')
     already_coped = []
     for file in files:
         already_coped.append(file[:-5])
     return already_coped
 
+
 if __name__ == '__main__':
-    #启动并初始化Chrome
+    # 启动并初始化Chrome
     url_list = get_all_url()
 
     already_coped_list = get_already_coped()
     for url in tqdm(url_list):
-        try:
-            if url[-10:] in already_coped_list:
-                pass
-            else:
-                driver = webdriver.Chrome(chrome_options=options)
-                wait = WebDriverWait(driver, 20)
-                postal = "20237"  # 华盛顿
-                print("正在爬取初始页面", url)
-                driver.get(url)
-                req, error = gethtml(url, hea)  # 默认header
-                product_star,review_num,five_point_review = get_items(req)
-                product_review = get_review(url,review_num)
-                save_data(product_star, review_num, five_point_review, product_review, url)
-                sleep(20)
-                driver.quit()  # 关闭浏览器
-        except:
+        if url[-10:] in already_coped_list:
             pass
+        else:
+            driver = webdriver.Chrome(chrome_options=options)
+            wait = WebDriverWait(driver, 20)
+            postal = "20237"  # 华盛顿
+            print("正在爬取初始页面", url)
+            driver.get(url)
+            req, error = gethtml(url, hea)  # 默认header
+            product_star, review_num, five_point_review = get_items(req)
+            product_review = get_review(url, review_num)
+            save_data(product_star, review_num, five_point_review, product_review, url)
+            driver.quit()  # 关闭浏览器
+
+
 
 
 

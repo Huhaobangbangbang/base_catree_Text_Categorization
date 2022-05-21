@@ -10,10 +10,11 @@ from lxml import etree
 from selenium.webdriver.common.by import By
 import requests
 import os, json
+
 hea = {
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
     'accept-encoding': 'gzip, deflate, br',
-    'accept-language': 'zh-CN,zh;q=0.9',
+    'accept-language': 'En-Us',
     'cache-control': 'max-age=0',
     'downlink': '8',
     'ect': '4g',
@@ -37,7 +38,9 @@ def initializate_options():
 
     return options
 
+
 options = initializate_options()
+
 
 def gethtml(url0, head):
     """为了得到静态页面HTML，有对页面反应超时的情况做了些延时处理"""
@@ -59,16 +62,18 @@ def gethtml(url0, head):
             i += 1
     raise Exception()
 
+
 def get_all_url():
     """得到所有商品页面链接"""
     url_before = 'https://www.amazon.com/dp/'
-    files = os.listdir('/Users/huhao/Documents/GitHub/base_catree_Text_Categorization/database')
+    files = os.listdir('/cloud/cloud_disk/users/huh/nlp/base_catree_Text_Categorization/database')
     url_list = []
     for file in files:
         url_after = file[:-4]
-        url_path = os.path.join(url_before,url_after)
+        url_path = os.path.join(url_before, url_after)
         url_list.append(url_path)
     return url_list
+
 
 def all_review_page(url_path):
     """翻到下一页"""
@@ -77,19 +82,29 @@ def all_review_page(url_path):
     html, repeat = gethtml(url_path, hea)
     html = etree.HTML(html.text)
     new_url = html.xpath('//a[@data-hook="see-all-reviews-link-foot"]/@href')
+
     new_url = 'https://www.amazon.com/' + new_url[0]
     return new_url
+
 
 def get_new_link(old_url):
     """通过当前页面，点击Next Page得到下一个页面的新链接"""
     browser = webdriver.Chrome(chrome_options=options)
     browser.get(old_url)
-    next_button = browser.find_element(By.XPATH, '//li[@class="a-last"]/a')
-    next_button.click()
-    new_url = browser.current_url
+    html, repeat = gethtml(old_url, hea)
+    html = etree.HTML(html.text)
+    first_url = html.xpath('//li[@class="a-last"]/a/@href')
+    try:
+        new_url = 'https://www.amazon.com//' + first_url[0]
+    except:
+        new_url = ''
+    # next_button = browser.find_element(By.XPATH, '//li[@class="a-last"]/a')
+    # next_button.click()
+    # new_url = browser.current_url
     return new_url
 
-def save_data(product_star,review_num,five_point_review,product_review,url):
+
+def save_data(product_star, review_num, five_point_review, product_review, url):
     """通过传过来的数据保存到json文件下"""
     ids = url[-10:]
     sample_dict = {}
@@ -98,13 +113,16 @@ def save_data(product_star,review_num,five_point_review,product_review,url):
     sample_dict['review_num'] = review_num
     sample_dict['highlights'] = five_point_review
     sample_dict['reviews'] = product_review
-    json_path = os.path.join('/Users/huhao/Documents/GitHub/base_catree_Text_Categorization/review_database/',ids+'.json')
+    json_path = os.path.join(
+        '/cloud/cloud_disk/users/huh/nlp/base_catree_Text_Categorization/script/super_Reptile/data', ids + '.json')
     out_file = open(json_path, "w")
     json.dump(sample_dict, out_file, indent=6)
 
-def generate_sample(buyer_id,star_user,time_gived,size_product,colour_product,verified_information,review,review_title,people_found_useful_information):
+
+def generate_sample(buyer_id, star_user, time_gived, size_product, colour_product, verified_information, review,
+                    review_title, people_found_useful_information):
     """获得数据，输出字典形式的sample"""
-    review_sample = {}#一个评价一个sample
+    review_sample = {}  # 一个评价一个sample
     review_sample['author'] = buyer_id
     review_sample['stars'] = star_user
     review_sample['date'] = time_gived
@@ -117,8 +135,11 @@ def generate_sample(buyer_id,star_user,time_gived,size_product,colour_product,ve
 
     return review_sample
 
+
 def get_review_function(url_link):
     """得到当前页面的评论"""
+
+    # 地址需要英文
     html, _ = gethtml(url_link, hea)  # 默认header
     # ISO-8859-1
     html = etree.HTML(html.text)
@@ -126,40 +147,43 @@ def get_review_function(url_link):
     # 商品购买信息
     review_sample_list = []
     # 商品购买信息
-    products_information_list = html.xpath('//div[@class="a-section review aok-relative"]//a[@data-hook="format-strip"]/text()')
-
+    products_information_list = html.xpath('//a[@data-hook="format-strip"]/text()')
     for index in range(len(review_element)):
-            sample = review_element[index]
-            html_str = str(etree.tostring(sample))
-            colour_product = ''
-            size_product = ''
+        sample = review_element[index]
+        html_str = str(etree.tostring(sample))
+        colour_product = ''
+        size_product = ''
+        try:
+            buyer_id, star_user, time_gived, review_content, review_title = cope_string(html_str)
+            current_str = html_str.split('<span data-hook="review-body"')[0]
+            if 'Vine' in current_str:
+                verified_information = 'Vine Customer Review of Free Product'
+            else:
+                verified_information = 'verified Purchase'
             try:
-                buyer_id, star_user, time_gived, review_content, review_title = cope_string(html_str)
-                current_str = html_str.split('<span data-hook="review-body"')[0]
-                if 'Vine' in current_str:
-                    verified_information = 'Vine Customer Review of Free Product'
+                if len(products_information_list) > len(review_element):
+                    size_product = products_information_list[index * 2]
+                    colour_product = products_information_list[index * 2 + 1]
                 else:
-                    verified_information = 'verified Purchase'
-                try:
-                    if len(products_information_list)>len(review_element):
-                        size_product = products_information_list[index*2]
-                        colour_product = products_information_list[index*2+1]
-                    else:
-                        colour_product = products_information_list[index]
-                except IndexError:
-                    pass
-                people_found_useful_information = get_found_useful_information_num(html_str)
-                review_sample = generate_sample(buyer_id,star_user,time_gived,size_product,colour_product,verified_information,review_content,review_title,people_found_useful_information)
-                review_sample_list.append(review_sample)
-            except:
+                    colour_product = products_information_list[index]
+
+            except IndexError:
                 pass
+            people_found_useful_information = get_found_useful_information_num(html_str)
+            review_sample = generate_sample(buyer_id, star_user, time_gived, size_product, colour_product,
+                                            verified_information, review_content, review_title,
+                                            people_found_useful_information)
+            review_sample_list.append(review_sample)
+        except:
+            pass
     return review_sample_list
+
 
 def get_found_useful_information_num(html_str):
     """得到大家认为其有用信息的个数"""
     try:
         current_str = html_str.split('<div class="cr-helpful-button aok-float-left">')[0].split('cr-vote-text">')[1]
-        people_found_useful_information =current_str.split(' &#')[0] + ' people found this helpful'
+        people_found_useful_information = current_str.split(' &#')[0] + ' people found this helpful'
     except:
         people_found_useful_information = '0 people found this helpful'
 
@@ -182,16 +206,14 @@ def cope_string(html_str):
 
     review_title = review_title_str.split('<span>')[1].split('</span>')[0]
 
-
-    return account,stars_buyer_gived,time_buyer_gived_str,review_content,review_title
-
+    return account, stars_buyer_gived, time_buyer_gived_str, review_content, review_title
 
 
 if __name__ == '__main__':
     options = initializate_options()
     url_path = 'https://www.amazon.com/dp/B0921T6QFC'
-    url_path = 'https://www.amazon.com/Made4Pets-Featuring-Sisal-Covered-Scratching-Spacious/product-reviews/B081SH7JVJ/ref=cm_cr_arp_d_paging_btm_next_8?ie=UTF8&reviewerType=all_reviews&pageNumber=8'
-    #url_path = 'https://www.amazon.com/Pawstory-Scratching-Multi-Level-Hammock-Furniture/product-reviews/B09FZ9ZV55/ref=cm_cr_arp_d_paging_btm_next_3?ie=UTF8&reviewerType=all_reviews&pageNumber=3'
+    # url_path = 'https://www.amazon.com/Made4Pets-Featuring-Sisal-Covered-Scratching-Spacious/product-reviews/B081SH7JVJ/ref=cm_cr_arp_d_paging_btm_next_8?ie=UTF8&reviewerType=all_reviews&pageNumber=8'
+    url_path = 'https://www.amazon.com/Pawstory-Scratching-Multi-Level-Hammock-Furniture/product-reviews/B09FZ9ZV55/ref=cm_cr_arp_d_paging_btm_next_3?ie=UTF8&reviewerType=all_reviews&pageNumber=3'
     get_review_function(url_path)
 
 
