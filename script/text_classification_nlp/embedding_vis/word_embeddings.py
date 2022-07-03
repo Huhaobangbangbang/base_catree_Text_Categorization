@@ -10,7 +10,7 @@ def one_hot_encode(string: str, strings: List[str]):
 
 
 word_tokenizer = re.compile("[A-Z]{2,}(?![a-z])|[A-Z][a-z]+(?=[A-Z])|[\'\w\-]+")
-with open('tweets_subset.txt') as file:
+with open('inf.txt') as file:
     ar = np.array([])
     for row in file:
         words = word_tokenizer.findall(row)

@@ -45,7 +45,6 @@ def read_json(json_path,out_json_path):
 
 
 
-
 if __name__ == '__main__':
     json_path = '/Users/huhao/Documents/GitHub/base_catree_Text_Categorization/new_cattree.json'
     out_json_path = '/Users/huhao/Documents/GitHub/base_catree_Text_Categorization/test.json'

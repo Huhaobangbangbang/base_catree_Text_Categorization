@@ -1,3 +1,9 @@
 
 *.xml
 *.iml
+.DS_Store
+script/get_tf_idf/altair-elections.html
+*.log
+script/text_classification_nlp/wandb/latest-run
+*.pyc
+*.pyc
